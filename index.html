@@ -621,7 +621,7 @@
     <div class="admin-modal-sub" id="adminModalSub">Enter your credentials to access the admin panel.</div>
     <div class="admin-field">
       <label id="labelUsername">Email</label>
-      <input type="email" id="adminUsername" placeholder="email@111.com" autocomplete="off">
+      <input type="email" id="adminUsername" placeholder="op1@cronos.com" autocomplete="off">
     </div>
     <div class="admin-field">
       <label id="labelPassword">Password</label>
@@ -1029,7 +1029,7 @@ async function handleDownload(modId, url) {
 }
 
 function countStats() {
-  const totalDl = MODS.reduce((a,m)=>a+m.downloads,0);
+  const totalDl = MODS.reduce((a,m)=>a+(m.downloads||0),0);
   const loaderSet = new Set(); MODS.forEach(m=>m.loaders.forEach(l=>loaderSet.add(l.label)));
   animateNum('totalMods',      STAT_OVERRIDE.totalMods      ?? MODS.length);
   animateNum('totalDownloads', STAT_OVERRIDE.totalDownloads ?? totalDl);
@@ -1040,7 +1040,7 @@ function openStatEdit(statKey, label, desc) {
   _editingStat = statKey;
   document.getElementById('statEditTitle').textContent = 'Edit ' + label;
   document.getElementById('statEditDesc').textContent  = desc;
-  const el = document.getElementById(statKey === 'totalMods' ? 'totalMods' : statKey === 'totalDownloads' ? 'totalDownloads' : 'totalLoaders');
+  const el = document.getElementById(statKey);
   document.getElementById('statEditInput').value = STAT_OVERRIDE[statKey] ?? (el ? el.textContent.replace(/,/g,'') : 0);
   document.getElementById('statEditOverlay').classList.add('open');
   setTimeout(() => document.getElementById('statEditInput').select(), 80);
@@ -1094,6 +1094,8 @@ function buildFilters() {
 
 function rebuildFilters() { document.getElementById("catFilters").innerHTML=""; document.getElementById("loaderFilters").innerHTML=""; buildFilters(); }
 
+function refreshFilters() { rebuildFilters(); applyFilters(); }
+
 function applyFilters() {
   const q=document.getElementById("searchInput").value.toLowerCase();
   const f=MODS.filter(m=>{
@@ -1121,7 +1123,6 @@ function renderMods(list) {
 function openModal(mod) {
   const mIcon = document.getElementById("modalIcon");
   mIcon.innerHTML = '';
-  mIcon.textContent = '';
   if (mod.imgData) {
     const img = document.createElement('img');
     img.src = mod.imgData;
@@ -1139,8 +1140,11 @@ function openModal(mod) {
         <span style="font-size:13px;color:var(--text)">${l.version}</span>
         <span style="font-size:12px;color:var(--text-muted)">${l.mc}</span>
       </div>
-      <button class="version-dl-btn" onclick="handleDownload(${mod.id},'${(l.url||'').replace(/'/g,'')}')">⬇ Download</button>
+      <button class="version-dl-btn" data-mod-id="${mod.id}" data-url="${encodeURIComponent(l.url||'')}">⬇ Download</button>
     </div>`).join("");
+  document.getElementById("modalVersions").querySelectorAll('.version-dl-btn').forEach(btn => {
+    btn.addEventListener('click', () => handleDownload(Number(btn.dataset.modId), decodeURIComponent(btn.dataset.url)));
+  });
   document.getElementById("modalOverlay").classList.add("open");
 }
 
@@ -1180,6 +1184,7 @@ window.__registerFn('closeModal',      closeModal);
 window.__registerFn('openModal',       openModal);
 window.__registerFn('setLang',         setLang);
 window.__registerFn('applyFilters',    applyFilters);
+window.__registerFn('refreshFilters',  refreshFilters);
 window.__registerFn('switchAdminTab',  switchAdminTab);
 window.__registerFn('addCategory',     addCategory);
 window.__registerFn('deleteCategory',  deleteCategory);
@@ -1207,9 +1212,6 @@ loadSettings().then(() => {
   applyTranslations();
   loadMods();
 });
-
-/* ─── Firebase Setup ─── */
-
 
 /* ─── Admin Login ─── */
 function openAdminLogin() {
@@ -1297,8 +1299,8 @@ function showAdminPanel(displayName) {
 
 /* ── stats ── */
 function refreshAdminStats() {
-  const totalDl  = MODS.reduce((a,m)=>a+m.downloads,0);
-  const totalVer = MODS.reduce((a,m)=>a+m.versions,0);
+  const totalDl  = MODS.reduce((a,m)=>a+(m.downloads||0),0);
+  const totalVer = MODS.reduce((a,m)=>a+(m.versions||0),0);
   document.getElementById('adminTotalMods').textContent      = MODS.length;
   document.getElementById('adminTotalDownloads').textContent = totalDl.toLocaleString();
   document.getElementById('adminTotalVersions').textContent  = totalVer;
@@ -1324,7 +1326,7 @@ function renderAdminTable() {
       <td><strong style="font-weight:500">${m.name}</strong></td>
       <td class="dim">${m.category}</td>
       <td class="dim">${m.versions}</td>
-      <td class="dim">${m.downloads.toLocaleString()}</td>
+      <td class="dim">${(m.downloads||0).toLocaleString()}</td>
       <td style="display:flex;gap:6px;">
         <button class="admin-action-btn" onclick="openModForm(${m.id})">Edit</button>
         <button class="admin-action-btn danger" onclick="askDeleteMod(${m.id})">Delete</button>
@@ -1348,14 +1350,14 @@ async function addCategory() {
   if (!val || CATEGORIES_KEY.includes(val)) { inp.focus(); return; }
   CATEGORIES_KEY.push(val);
   inp.value = '';
-  renderCatChips(); rebuildFilters(); applyFilters();
+  renderCatChips(); refreshFilters();
   await saveSettings();
   showToast('Category added');
 }
 async function deleteCategory(cat) {
   const idx = CATEGORIES_KEY.indexOf(cat);
   if (idx>-1) CATEGORIES_KEY.splice(idx,1);
-  renderCatChips(); rebuildFilters(); applyFilters();
+  renderCatChips(); refreshFilters();
   await saveSettings();
   showToast('Category removed');
 }
@@ -1375,14 +1377,14 @@ async function addLoader() {
   if (!val || LOADERS_KEY.includes(val)) { inp.focus(); return; }
   LOADERS_KEY.push(val);
   inp.value = '';
-  renderLoaderChips(); rebuildFilters(); applyFilters();
+  renderLoaderChips(); refreshFilters();
   await saveSettings();
   showToast('Loader added');
 }
 async function deleteLoader(ld) {
   const idx = LOADERS_KEY.indexOf(ld);
   if (idx>-1) LOADERS_KEY.splice(idx,1);
-  renderLoaderChips(); rebuildFilters(); applyFilters();
+  renderLoaderChips(); refreshFilters();
   await saveSettings();
   showToast('Loader removed');
 }
@@ -1458,9 +1460,10 @@ function previewImgFile() {
 }
 
 /* version rows */
+const LOADER_TYPE_MAP = {Forge:'forge',Fabric:'fabric',NeoForge:'neoforge',Addon:'addon'};
+
 function addVersionRow(data) {
   const loaderOpts = LOADERS_KEY.filter(l=>l!=='All').map(l=>`<option value="${l}" ${data&&data.label===l?'selected':''}>${l}</option>`).join('');
-  const typeMap = {Forge:'forge',Fabric:'fabric',NeoForge:'neoforge',Addon:'addon'};
   const row = document.createElement('div');
   row.className = 'version-entry';
   row.innerHTML = `
@@ -1504,12 +1507,11 @@ async function doSaveMod() {
   }
 
   /* version rows */
-  const typeMap = {Forge:'forge',Fabric:'fabric',NeoForge:'neoforge',Addon:'addon'};
   const rows = [...document.querySelectorAll('#versionBuilder .version-entry')];
   const loaders = rows.map(r => {
     const [selEl, verEl, mcEl, urlEl] = r.querySelectorAll('select,input');
     const label = selEl.value;
-    return { type: typeMap[label]||label.toLowerCase(), label, version: verEl.value||'v1.0', mc: mcEl.value||'MC 1.20.1', url: urlEl.value||'' };
+    return { type: LOADER_TYPE_MAP[label]||label.toLowerCase(), label, version: verEl.value||'v1.0', mc: mcEl.value||'MC 1.20.1', url: urlEl.value||'' };
   });
 
   const wasEditing = _editingModId;
