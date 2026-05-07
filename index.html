@@ -20,8 +20,8 @@
     --forge: #c87c40;
     --fabric: #5a8ed4;
     --neoforge: #9065c4;
-    --addon: #7e08b4;
-    --green: #5f0792;
+    --addon: #7800af;
+    --green: #7800af;
   }
   * { margin:0; padding:0; box-sizing:border-box; }
   body { background:var(--bg); color:var(--text); font-family:'DM Mono',monospace; min-height:100vh; overflow-x:hidden; position:relative; }
@@ -67,15 +67,13 @@
     animation: splashIn 0.5s 0.3s ease both;
   }
   .splash-bar {
-    height:100%; width:0%; background:var(--green);
+    height:100%; width:40%; background:var(--green);
     border-radius:2px;
-    animation: splashLoad 1.6s 0.4s cubic-bezier(0.4,0,0.2,1) forwards;
+    animation: splashIndeterminate 1.2s ease-in-out infinite;
   }
-  @keyframes splashLoad {
-    0%   { width:0%; }
-    60%  { width:75%; }
-    85%  { width:92%; }
-    100% { width:100%; }
+  @keyframes splashIndeterminate {
+    0%   { transform: translateX(-100%); }
+    100% { transform: translateX(650%); }
   }
   /* ========================= */
 
@@ -1179,7 +1177,28 @@ window.__registerFn('openStatEdit',      openStatEdit);
 window.__registerFn('saveStatEdit',      saveStatEdit);
 window.__registerFn('enableStatEditMode',enableStatEditMode);
 
-loadSettings().then(() => { buildFilters(); applyTranslations(); loadMods(); });
+// ===== SPLASH INIT =====
+(function() {
+  const splash = document.getElementById('splash');
+  function hideSplash() {
+    splash.classList.add('hidden');
+    setTimeout(() => splash.classList.add('gone'), 650);
+  }
+  // ถ้าเคยโหลดแล้วในเซสชันนี้ -> ข้ามทันที
+  if (sessionStorage.getItem('splashShown')) {
+    splash.classList.add('gone');
+    loadSettings().then(() => { buildFilters(); applyTranslations(); loadMods(); });
+  } else {
+    // โหลดจริง รอ Firebase เสร็จ
+    const minTimer = new Promise(r => setTimeout(r, 1200)); // อย่างน้อย 1.2s
+    const dataLoad = loadSettings().then(() => { buildFilters(); applyTranslations(); return loadMods(); });
+    Promise.all([minTimer, dataLoad]).then(() => {
+      sessionStorage.setItem('splashShown', '1');
+      hideSplash();
+    });
+  }
+})();
+// ========================
 
 function openAdminLogin() {
   if (auth.currentUser) { openAdminPanel(auth.currentUser); return; }
@@ -1497,16 +1516,7 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 
-// ===== SPLASH SCREEN =====
-(function() {
-  const splash = document.getElementById('splash');
-  // Fade out after bar finishes, then remove from DOM entirely
-  setTimeout(() => {
-    splash.classList.add('hidden');
-    setTimeout(() => { splash.classList.add('gone'); }, 650);
-  }, 2200);
-})();
-// =========================
+
 </script>
 </body>
 </html>
