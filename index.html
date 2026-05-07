@@ -1010,6 +1010,8 @@ const STAT_OVERRIDE = { totalMods: null, totalDownloads: null, totalLoaders: nul
 let _editingStat = null;
 
 async function handleDownload(modId, url) {
+  if (!url || !url.trim()) { showToast('No download URL set for this version','err'); return; }
+  window.open(url.trim(), '_blank', 'noopener');
   try {
     const mod  = MODS.find(m => m.id === modId);
     const fsId = mod?.firestoreId || String(modId);
@@ -1019,8 +1021,6 @@ async function handleDownload(modId, url) {
     const sub = document.getElementById('modalSub');
     if (sub && mod) sub.textContent = `${mod.versions} version${mod.versions>1?'s':''}  · ${mod.downloads.toLocaleString()} downloads`;
   } catch(e) { console.error('download increment error:', e); }
-  if (url && url.trim()) window.open(url.trim(), '_blank', 'noopener');
-  else showToast('No download URL set for this version','err');
 }
 
 function countStats() {
