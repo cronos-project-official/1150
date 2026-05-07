@@ -4,31 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cronos Project — Official Mod Download</title>
-
-<!-- Favicon (SVG inline data URI) -->
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231c1c1e'/%3E%3Ccircle cx='44' cy='18' r='7' fill='%234aaa6e'/%3E%3Ctext x='10' y='48' font-family='sans-serif' font-weight='900' font-size='34' fill='%23e8e8f0'%3EC%3C/text%3E%3C/svg%3E">
-<link rel="icon" type="image/png" sizes="32x32" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231c1c1e'/%3E%3Ccircle cx='44' cy='18' r='7' fill='%234aaa6e'/%3E%3Ctext x='10' y='48' font-family='sans-serif' font-weight='900' font-size='34' fill='%23e8e8f0'%3EC%3C/text%3E%3C/svg%3E">
-
-<!-- SEO Meta Tags -->
-<meta name="description" content="Cronos Project — Download official Minecraft mods for Forge, Fabric, NeoForge and Bedrock Addon. Browse, filter and download the latest versions.">
-<meta name="keywords" content="Cronos Project, Minecraft mod, Forge, Fabric, NeoForge, Addon, mod download">
-<meta name="author" content="Cronos Project">
-<meta name="robots" content="index, follow">
-<meta name="theme-color" content="#111113">
-
-<!-- Open Graph (Facebook / Discord / Line) -->
-<meta property="og:type" content="website">
-<meta property="og:title" content="Cronos Project — Official Mod Download">
-<meta property="og:description" content="Browse and download official Cronos Project mods for Minecraft. Supports Forge, Fabric, NeoForge and Addon.">
-<meta property="og:image" content="https://cronos-project-official.firebaseapp.com/og-image.png">
-<meta property="og:url" content="https://cronos-project-official.firebaseapp.com/">
-<meta property="og:site_name" content="Cronos Project">
-
-<!-- Twitter Card -->
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Cronos Project — Official Mod Download">
-<meta name="twitter:description" content="Browse and download official Cronos Project mods for Minecraft.">
-<meta name="twitter:image" content="https://cronos-project-official.firebaseapp.com/og-image.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=Raleway:wght@700;800;900&display=swap" rel="stylesheet">
 <style>
@@ -45,11 +20,64 @@
     --forge: #c87c40;
     --fabric: #5a8ed4;
     --neoforge: #9065c4;
-    --addon: #3aaa72;
-    --green: #4aaa6e;
+    --addon: #7e08b4;
+    --green: #5f0792;
   }
   * { margin:0; padding:0; box-sizing:border-box; }
   body { background:var(--bg); color:var(--text); font-family:'DM Mono',monospace; min-height:100vh; overflow-x:hidden; position:relative; }
+
+  /* ===== SPLASH SCREEN ===== */
+  #splash {
+    position:fixed; inset:0; z-index:9999;
+    background:var(--bg);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:32px;
+    transition:opacity 0.6s ease, visibility 0.6s ease;
+  }
+  #splash.hidden { opacity:0; pointer-events:none; }
+  #splash.gone  { display:none; }
+
+  .splash-logo-wrap {
+    display:flex; flex-direction:column; align-items:center; gap:0;
+    animation: splashIn 0.7s cubic-bezier(0.22,1,0.36,1) both;
+  }
+  @keyframes splashIn {
+    from { opacity:0; transform:scale(0.72) translateY(24px); }
+    to   { opacity:1; transform:scale(1) translateY(0); }
+  }
+
+  .splash-name {
+    font-family:'Raleway',sans-serif; font-weight:900;
+    font-size:clamp(32px,6vw,54px);
+    color:var(--text); letter-spacing:0.04em; text-align:center;
+    line-height:1.1;
+  }
+  .splash-name span { color:var(--green); }
+
+  .splash-tagline {
+    font-family:'DM Mono',monospace; font-size:13px;
+    color:var(--text-dim); letter-spacing:2px; text-align:center;
+    text-transform:uppercase;
+    animation: splashIn 0.7s 0.15s cubic-bezier(0.22,1,0.36,1) both;
+  }
+
+  .splash-bar-wrap {
+    width:220px; height:2px; background:rgba(255,255,255,0.07);
+    border-radius:2px; overflow:hidden;
+    animation: splashIn 0.5s 0.3s ease both;
+  }
+  .splash-bar {
+    height:100%; width:0%; background:var(--green);
+    border-radius:2px;
+    animation: splashLoad 1.6s 0.4s cubic-bezier(0.4,0,0.2,1) forwards;
+  }
+  @keyframes splashLoad {
+    0%   { width:0%; }
+    60%  { width:75%; }
+    85%  { width:92%; }
+    100% { width:100%; }
+  }
+  /* ========================= */
 
   #floatCanvas { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
   .float-letter {
@@ -175,30 +203,6 @@
   .filter-btn.active { background:rgba(255,255,255,0.09); border-color:var(--border-hover); color:var(--text); }
 
   .mod-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
-
-  /* ── Loading Skeleton ── */
-  .skeleton-card {
-    background:var(--card); border:1px solid var(--border); border-radius:16px;
-    padding:24px; animation:fadeUp .4s ease both;
-  }
-  .skel {
-    background:linear-gradient(90deg, var(--card2) 25%, rgba(255,255,255,0.06) 50%, var(--card2) 75%);
-    background-size:400% 100%;
-    animation: shimmer 1.5s infinite;
-    border-radius:6px;
-  }
-  @keyframes shimmer { 0%{background-position:100% 0} 100%{background-position:-100% 0} }
-  .skel-header { display:flex; align-items:flex-start; gap:14px; margin-bottom:14px; }
-  .skel-icon { width:68px; height:68px; border-radius:12px; flex-shrink:0; }
-  .skel-meta { flex:1; display:flex; flex-direction:column; gap:8px; padding-top:4px; }
-  .skel-title { height:16px; width:70%; }
-  .skel-sub { height:11px; width:40%; }
-  .skel-badge { height:24px; width:60px; border-radius:20px; margin-left:auto; }
-  .skel-desc { height:12px; width:100%; margin-bottom:6px; }
-  .skel-desc2 { height:12px; width:80%; margin-bottom:14px; }
-  .skel-tags { display:flex; gap:6px; margin-bottom:14px; }
-  .skel-tag { height:24px; width:80px; border-radius:5px; }
-  .skel-footer { height:12px; width:50%; border-top:1px solid var(--border); padding-top:10px; }
   .mod-card {
     background:var(--card); border:1px solid var(--border); border-radius:16px;
     padding:24px; cursor:pointer; transition:all .2s; animation:fadeUp .4s ease both; position:relative; overflow:hidden;
@@ -251,70 +255,6 @@
 
   @media(max-width:900px){ main{padding:24px 20px 60px} nav{padding:14px 20px} .mod-grid{grid-template-columns:repeat(2,1fr)} .stats{grid-template-columns:repeat(3,1fr)} }
   @media(max-width:600px){ .mod-grid,.stats{grid-template-columns:1fr} .filter-row{gap:12px} }
-
-  /* ── Sort Dropdown ── */
-  .sort-select {
-    padding:6px 32px 6px 12px; border-radius:8px; border:1px solid var(--border);
-    background:var(--card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238a8a9a' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 10px center;
-    color:var(--text-dim); font-family:'DM Mono',monospace; font-size:12px;
-    cursor:pointer; appearance:none; transition:all .15s; outline:none;
-  }
-  .sort-select:hover, .sort-select:focus { border-color:var(--border-hover); color:var(--text); }
-
-  /* ── Error State ── */
-  .error-state {
-    grid-column:1/-1; text-align:center; padding:60px 20px;
-    display:flex; flex-direction:column; align-items:center; gap:16px;
-  }
-  .error-icon {
-    width:56px; height:56px; border-radius:14px;
-    background:rgba(224,82,82,0.1); border:1px solid rgba(224,82,82,0.25);
-    display:flex; align-items:center; justify-content:center;
-  }
-  .error-icon svg { color:#e05252; }
-  .error-title { font-family:'Syne',sans-serif; font-size:16px; font-weight:700; color:var(--text); }
-  .error-sub { font-size:12px; color:var(--text-dim); max-width:340px; line-height:1.6; }
-  .error-retry-btn {
-    padding:8px 20px; border-radius:8px; border:1px solid rgba(224,82,82,0.4);
-    background:rgba(224,82,82,0.08); color:#e05252;
-    font-family:'DM Mono',monospace; font-size:12px; cursor:pointer; transition:all .15s;
-  }
-  .error-retry-btn:hover { background:rgba(224,82,82,0.16); }
-
-  /* ── Footer ── */
-  .site-footer {
-    position:relative; z-index:1;
-    border-top:1px solid var(--border);
-    padding:40px 40px 32px;
-    background:var(--bg);
-  }
-  .footer-inner {
-    max-width:1300px; margin:0 auto;
-    display:grid; grid-template-columns:1fr auto; gap:32px; align-items:start;
-  }
-  .footer-brand { display:flex; align-items:center; gap:12px; margin-bottom:10px; }
-  .footer-brand-name { font-family:'Raleway',sans-serif; font-size:15px; font-weight:800; color:var(--text); letter-spacing:0.04em; }
-  .footer-brand-sub { font-size:11px; color:var(--text-dim); margin-top:2px; letter-spacing:.4px; }
-  .footer-desc { font-size:12px; color:var(--text-muted); line-height:1.7; max-width:380px; }
-  .footer-links { display:flex; flex-direction:column; gap:10px; align-items:flex-end; }
-  .footer-link-label { font-size:11px; color:var(--text-muted); letter-spacing:.5px; text-transform:uppercase; margin-bottom:4px; }
-  .footer-link {
-    font-size:12px; color:var(--text-dim); text-decoration:none;
-    display:flex; align-items:center; gap:6px; transition:color .15s;
-  }
-  .footer-link:hover { color:var(--text); }
-  .footer-bottom {
-    max-width:1300px; margin:24px auto 0;
-    padding-top:20px; border-top:1px solid var(--border);
-    display:flex; justify-content:space-between; align-items:center;
-    font-size:11px; color:var(--text-muted);
-  }
-  @media(max-width:600px) {
-    .footer-inner { grid-template-columns:1fr; }
-    .footer-links { align-items:flex-start; }
-    .footer-bottom { flex-direction:column; gap:8px; text-align:center; }
-    .site-footer { padding:32px 20px 24px; }
-  }
 
   .admin-overlay { display:none; position:fixed; inset:0; z-index:300; background:rgba(0,0,0,0.8); backdrop-filter:blur(10px); align-items:center; justify-content:center; }
   .admin-overlay.open { display:flex; }
@@ -596,6 +536,17 @@
 </head>
 <body>
 
+<!-- SPLASH SCREEN -->
+<div id="splash">
+  <div class="splash-logo-wrap">
+    <div class="splash-name">Cronos<span> Project</span></div>
+  </div>
+  <div class="splash-tagline">Official Mod Download</div>
+  <div class="splash-bar-wrap">
+    <div class="splash-bar"></div>
+  </div>
+</div>
+
 <div id="floatCanvas"></div>
 
 <nav>
@@ -677,57 +628,11 @@
         <span class="filter-label" data-i18n="filter_loader">Loader:</span>
         <div id="loaderFilters" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
       </div>
-      <div class="filter-group" style="margin-left:auto;">
-        <span class="filter-label">Sort:</span>
-        <select class="sort-select" id="sortSelect" onchange="window.applyFilters()">
-          <option value="default">Default</option>
-          <option value="name_asc">Name A→Z</option>
-          <option value="name_desc">Name Z→A</option>
-          <option value="downloads_desc">Most Downloads</option>
-          <option value="downloads_asc">Least Downloads</option>
-          <option value="versions_desc">Most Versions</option>
-        </select>
-      </div>
     </div>
   </div>
 
   <div class="mod-grid" id="modGrid"></div>
 </main>
-
-<!-- Footer -->
-<footer class="site-footer">
-  <div class="footer-inner">
-    <div>
-      <div class="footer-brand">
-        <div class="logo-icon" style="width:32px;height:32px;border-radius:9px;font-size:15px;"></div>
-        <div>
-          <div class="footer-brand-name">Cronos Project</div>
-          <div class="footer-brand-sub">Official Mod Download</div>
-        </div>
-      </div>
-      <p class="footer-desc">A collection of Minecraft mods supporting Forge, Fabric, NeoForge and Bedrock Addon. Updated regularly by the Cronos team.</p>
-    </div>
-    <div class="footer-links">
-      <div class="footer-link-label">Resources</div>
-      <a class="footer-link" href="https://modrinth.com" target="_blank" rel="noopener">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-        Modrinth
-      </a>
-      <a class="footer-link" href="https://www.curseforge.com" target="_blank" rel="noopener">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-        CurseForge
-      </a>
-      <a class="footer-link" href="https://discord.gg/" target="_blank" rel="noopener">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-        Discord
-      </a>
-    </div>
-  </div>
-  <div class="footer-bottom">
-    <span>© <span id="footerYear"></span> Cronos Project. All rights reserved.</span>
-    <span style="color:var(--text-muted)">Built with ❤️ for the Minecraft community</span>
-  </div>
-</footer>
 
 <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
   <div class="modal">
@@ -1089,57 +994,14 @@ async function saveSettings() {
 }
 
 async function loadMods() {
-  renderSkeleton();
   try {
     const snap = await getDocs(collection(db, 'mods'));
     MODS = snap.docs.map(d => ({ firestoreId: d.id, ...d.data() })).filter(m => m.name).sort((a,b) => (a.id||0) - (b.id||0));
-  } catch(e) {
-    console.error('loadMods error:', e);
-    MODS = [];
-    renderError(e);
-    return;
-  }
+  } catch(e) { console.error('loadMods error:', e); MODS = []; }
   countStats(); applyFilters();
   if (document.getElementById('adminPanel').classList.contains('open')) {
     renderAdminTable(); refreshAdminStats();
   }
-}
-
-function renderSkeleton() {
-  const grid = document.getElementById('modGrid');
-  grid.innerHTML = Array.from({length:6}).map(()=>`
-    <div class="skeleton-card">
-      <div class="skel-header">
-        <div class="skel skel-icon"></div>
-        <div class="skel-meta">
-          <div class="skel skel-title"></div>
-          <div class="skel skel-sub"></div>
-        </div>
-        <div class="skel skel-badge"></div>
-      </div>
-      <div class="skel skel-desc"></div>
-      <div class="skel skel-desc2"></div>
-      <div class="skel-tags">
-        <div class="skel skel-tag"></div>
-        <div class="skel skel-tag"></div>
-      </div>
-      <div class="skel skel-footer"></div>
-    </div>`).join('');
-}
-
-function renderError(err) {
-  const grid = document.getElementById('modGrid');
-  grid.innerHTML = `
-    <div class="error-state">
-      <div class="error-icon">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-        </svg>
-      </div>
-      <div class="error-title">Failed to load mods</div>
-      <div class="error-sub">${err?.message || 'Could not connect to the database. Please check your connection and try again.'}</div>
-      <button class="error-retry-btn" onclick="loadMods()">↺ Retry</button>
-    </div>`;
 }
 
 let activeCat = "All", activeLoader = "All";
@@ -1220,19 +1082,12 @@ function refreshFilters() { rebuildFilters(); applyFilters(); }
 
 function applyFilters() {
   const q=document.getElementById("searchInput").value.toLowerCase();
-  const sortVal = (document.getElementById("sortSelect")||{}).value || 'default';
-  let f=MODS.filter(m=>{
+  const f=MODS.filter(m=>{
     const mC=activeCat==="All"||m.category===activeCat;
     const mL=activeLoader==="All"||m.loaders.some(l=>l.label===activeLoader);
     const mS=m.name.toLowerCase().includes(q)||m.description.toLowerCase().includes(q);
     return mC&&mL&&mS;
-  });
-  if (sortVal === 'name_asc')          f = [...f].sort((a,b) => a.name.localeCompare(b.name));
-  else if (sortVal === 'name_desc')    f = [...f].sort((a,b) => b.name.localeCompare(a.name));
-  else if (sortVal === 'downloads_desc') f = [...f].sort((a,b) => (b.downloads||0)-(a.downloads||0));
-  else if (sortVal === 'downloads_asc')  f = [...f].sort((a,b) => (a.downloads||0)-(b.downloads||0));
-  else if (sortVal === 'versions_desc')  f = [...f].sort((a,b) => (b.versions||0)-(a.versions||0));
-  renderMods(f);
+  }); renderMods(f);
 }
 
 function renderMods(list) {
@@ -1642,8 +1497,16 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 
-// Footer year
-document.getElementById('footerYear').textContent = new Date().getFullYear();
+// ===== SPLASH SCREEN =====
+(function() {
+  const splash = document.getElementById('splash');
+  // Fade out after bar finishes, then remove from DOM entirely
+  setTimeout(() => {
+    splash.classList.add('hidden');
+    setTimeout(() => { splash.classList.add('gone'); }, 650);
+  }, 2200);
+})();
+// =========================
 </script>
 </body>
 </html>
