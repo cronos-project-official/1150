@@ -907,11 +907,9 @@ const firebaseApp = initializeApp(firebaseConfig);
 const auth = getAuth(firebaseApp);
 const db   = getFirestore(firebaseApp);
 
-const ALLOWED_EMAILS = {
-  'op1@cronos.com': 'OP1',
-  'op2@cronos.com': 'OP2',
-  'op3@cronos.com': 'OP3',
-};
+// Admin whitelist removed from client-side.
+// Access is now enforced entirely by Firestore Security Rules.
+// The display name is fetched from Firestore after login.
 
 const i18n = {
   en: {
@@ -1223,23 +1221,24 @@ async function doAdminLogin() {
   const pass = document.getElementById('adminPassword').value;
   const errEl = document.getElementById('adminError');
   const loginBtn = document.querySelector('.admin-login-btn');
-  if (!ALLOWED_EMAILS[emailInput]) {
-    errEl.textContent = 'This email is not authorized.';
-    errEl.classList.add('show');
-    document.getElementById('adminPassword').value = '';
-    document.getElementById('adminPassword').focus();
-    return;
-  }
   loginBtn.textContent = 'Signing in…';
   loginBtn.disabled = true;
   errEl.classList.remove('show');
   try {
     const cred = await signInWithEmailAndPassword(auth, emailInput, pass);
+    // Verify this user has an admin profile in Firestore
+    const adminSnap = await getDocs(collection(db, 'admins'));
+    const adminDoc = adminSnap.docs.find(d => d.id === cred.user.uid);
+    if (!adminDoc) {
+      await signOut(auth);
+      throw { code: 'auth/unauthorized' };
+    }
     document.getElementById('adminOverlay').classList.remove('open');
-    openAdminPanel(cred.user);
+    openAdminPanel(cred.user, adminDoc.data().displayName);
   } catch (err) {
     let msg = 'Invalid email or password.';
     if (err.code === 'auth/too-many-requests') msg = 'Too many attempts. Try again later.';
+    if (err.code === 'auth/unauthorized') msg = 'This account is not authorized as admin.';
     errEl.textContent = msg;
     errEl.classList.add('show');
     document.getElementById('adminPassword').value = '';
@@ -1255,13 +1254,12 @@ let _editingModId = null;
 let _imgMode = 'emoji';
 let _fileDataUrl = null;
 
-function openAdminPanel(user) {
-  const email = user.email.toLowerCase();
-  const displayName = ALLOWED_EMAILS[email] || email;
-  document.getElementById('navProfileName').textContent = displayName;
+function openAdminPanel(user, displayName) {
+  const name = displayName || user.email;
+  document.getElementById('navProfileName').textContent = name;
   document.getElementById('navProfile').classList.add('visible');
   document.getElementById('navLoginBtn').style.display = 'none';
-  showAdminPanel(displayName);
+  showAdminPanel(name);
 }
 
 function showAdminPanel(displayName) {
@@ -1509,14 +1507,18 @@ async function confirmLogout() {
   document.getElementById('navLoginBtn').style.display = '';
 }
 
-onAuthStateChanged(auth, (user) => {
-  if (user && ALLOWED_EMAILS[user.email.toLowerCase()]) {
-    const displayName = ALLOWED_EMAILS[user.email.toLowerCase()];
+onAuthStateChanged(auth, async (user) => {
+  if (!user) return;
+  try {
+    const adminSnap = await getDocs(collection(db, 'admins'));
+    const adminDoc = adminSnap.docs.find(d => d.id === user.uid);
+    if (!adminDoc) return;
+    const displayName = adminDoc.data().displayName || user.email;
     document.getElementById('navProfileName').textContent = displayName;
     document.getElementById('navProfile').classList.add('visible');
     document.getElementById('navLoginBtn').style.display = 'none';
     if (sessionStorage.getItem('adminPanelOpen') === '1') showAdminPanel(displayName);
-  }
+  } catch(e) { /* not admin or no access */ }
 });
 
 
