@@ -890,7 +890,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   getFirestore, collection, doc,
-  getDocs, setDoc, updateDoc, deleteDoc, increment
+  getDocs, getDoc, setDoc, updateDoc, deleteDoc, increment
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -1226,10 +1226,10 @@ async function doAdminLogin() {
   errEl.classList.remove('show');
   try {
     const cred = await signInWithEmailAndPassword(auth, emailInput, pass);
-    // Verify this user has an admin profile in Firestore
-    const adminSnap = await getDocs(collection(db, 'admins'));
-    const adminDoc = adminSnap.docs.find(d => d.id === cred.user.uid);
-    if (!adminDoc) {
+    // Verify this user has an admin profile in Firestore (direct UID lookup — fast)
+    const adminRef = doc(db, 'admins', cred.user.uid);
+    const adminDoc = await getDoc(adminRef);
+    if (!adminDoc.exists()) {
       await signOut(auth);
       throw { code: 'auth/unauthorized' };
     }
@@ -1510,9 +1510,8 @@ async function confirmLogout() {
 onAuthStateChanged(auth, async (user) => {
   if (!user) return;
   try {
-    const adminSnap = await getDocs(collection(db, 'admins'));
-    const adminDoc = adminSnap.docs.find(d => d.id === user.uid);
-    if (!adminDoc) return;
+    const adminDoc = await getDoc(doc(db, 'admins', user.uid));
+    if (!adminDoc.exists()) return;
     const displayName = adminDoc.data().displayName || user.email;
     document.getElementById('navProfileName').textContent = displayName;
     document.getElementById('navProfile').classList.add('visible');
