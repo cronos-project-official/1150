@@ -1224,6 +1224,7 @@ async function doAdminLogin() {
   loginBtn.textContent = 'Signing in…';
   loginBtn.disabled = true;
   errEl.classList.remove('show');
+  _loggingIn = true;
   try {
     const cred = await signInWithEmailAndPassword(auth, emailInput, pass);
     // Verify this user has an admin profile in Firestore (direct UID lookup — fast)
@@ -1244,6 +1245,7 @@ async function doAdminLogin() {
     document.getElementById('adminPassword').value = '';
     document.getElementById('adminPassword').focus();
   } finally {
+    _loggingIn = false;
     loginBtn.textContent = 'SIGN IN';
     loginBtn.disabled = false;
   }
@@ -1507,8 +1509,11 @@ async function confirmLogout() {
   document.getElementById('navLoginBtn').style.display = '';
 }
 
+let _loggingIn = false;
+
 onAuthStateChanged(auth, async (user) => {
   if (!user) return;
+  if (_loggingIn) return; // doAdminLogin is handling this — skip duplicate update
   try {
     const adminDoc = await getDoc(doc(db, 'admins', user.uid));
     if (!adminDoc.exists()) return;
